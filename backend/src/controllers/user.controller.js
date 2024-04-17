@@ -5,6 +5,11 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
+const options = {
+  httpOnly: true,
+  secure: true,
+};
+
 const generateAccessAndRefreshToken = async (userId) => {
   try {
     const user = await User.findById(userId);
@@ -102,11 +107,6 @@ const loginUser = asyncHandler(async (req, res) => {
     "-password -refreshToken"
   );
 
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
-
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
@@ -127,11 +127,6 @@ const logoutUser = asyncHandler(async (req, res) => {
     { $set: { refreshToken: undefined } },
     { new: true }
   );
-
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
 
   return res
     .status(200)
@@ -158,10 +153,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     if (incomingRefreshToken !== user?.refreshToken)
       throw new ApiError(401, "Refresh token is expired or used");
 
-    const options = {
-      httpOnly: true,
-      secure: true,
-    };
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
       user._id
     );
