@@ -5,7 +5,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { deleteOnCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 
-const getAllVideos = asyncHandler(async (req, res, next) => {
+const getAllVideos = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
 
   // stage 1: initiliaze the query parameters
@@ -47,16 +47,18 @@ const getAllVideos = asyncHandler(async (req, res, next) => {
     videos.length > 0 && videos[0].totalCount.length > 0
       ? videos[0].totalCount[0].total
       : 0;
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      { paginatedData, totalCount },
-      `${paginatedData?.length} videos found`
-    )
-  );
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { paginatedData, totalCount },
+        `${paginatedData?.length} videos found`
+      )
+    );
 });
 
-const publishVideo = asyncHandler(async (req, res, next) => {
+const publishVideo = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
   const videoFileLocalPath = req.files?.videoFile[0]?.path;
   const thumbnailLocalPath = req.files?.thumbnail[0]?.path;
@@ -81,7 +83,7 @@ const publishVideo = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(201, video, "Video uploaded successfully"));
 });
 
-const getVideoById = asyncHandler(async (req, res, next) => {
+const getVideoById = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const video = await Video.findById(videoId);
   return res
@@ -89,7 +91,7 @@ const getVideoById = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(200, video, "Video found successfully"));
 });
 
-const updateVideo = asyncHandler(async (req, res, next) => {
+const updateVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const video = await Video.findById(videoId);
   const { title, description } = req.body;
@@ -107,13 +109,13 @@ const updateVideo = asyncHandler(async (req, res, next) => {
     video.thumbnail = newThumbnail.url;
   }
 
-  await video.save();
+  await video.save({ validateBeforeSave: false });
   return res
     .status(200)
     .json(new ApiResponse(200, video, "Video Updated Successfully"));
 });
 
-const deleteVideo = asyncHandler(async (req, res, next) => {
+const deleteVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const deleteVideo = await Video.findByIdAndDelete(videoId);
   await deleteOnCloudinary(deleteVideo.videoFile, "video");
@@ -121,11 +123,11 @@ const deleteVideo = asyncHandler(async (req, res, next) => {
   return res.status(200).json(200, {}, "Video deleted successfully");
 });
 
-const togglePublishStatus = asyncHandler(async (req, res, next) => {
+const togglePublishStatus = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const video = await Video.findById(videoId);
   video.isPublished = !video.isPublished;
-  await video.save();
+  await video.save({ validateBeforeSave: false });
   return res
     .status(200)
     .json(new ApiResponse(200, video, "Video Updated Successfully"));
