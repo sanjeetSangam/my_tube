@@ -94,14 +94,17 @@ const getVideoById = asyncHandler(async (req, res) => {
 const updateVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const video = await Video.findById(videoId);
-  const { title, description } = req.body;
+  const { title, description, view } = req.body;
   let thumbnailLocalPath = req.file?.path || null;
 
-  if (!title && !description && !thumbnailLocalPath)
+  if (!title && !description && !thumbnailLocalPath && !view)
     throw new ApiError(400, "Provide at least title or description thumbnail");
 
   if (title) video.title = title;
   if (description) video.description = description;
+
+  if (view) video.views += 1;
+
   if (thumbnailLocalPath) {
     thumbnailLocalPath = req.file?.path;
     await deleteOnCloudinary(video.thumbnail);
